@@ -18,6 +18,16 @@ def create_app(settings_override=None):
 
 
 def register_routes(app):
+
+    @app.route('/_status/health')
+    def health():
+        return jsonify(
+            {
+                'status': 'ok',
+                'config': 'loaded' if app.config['DIR_CONFIG'] else 'not loaded'
+            }
+        ), 200
+
     @app.route('/directory/software-statement/<statement_id>/<key_type>/jwk_uri', methods=['GET'])
     def get_jwks(statement_id, key_type):
         try:

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: obp-remote-consent-service-v2
+  name: obp-directory
   labels:
-    app: obp-remote-consent-service-v2
+    app: obp-directory
 spec:
   type: NodePort
   ports:
@@ -11,39 +11,34 @@ spec:
     port: 8080
     protocol: TCP
     targetPort: 8000
-    nodePort: 31959
   selector:
-    app: obp-remote-consent-service-v2
+    app: obp-directory
     version: v1
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: obp-remote-consent-service-v2
+  name: obp-directory
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: obp-remote-consent-service-v2
+        app: obp-directory
         version: v1
     spec:
-      hostAliases:
-        - ip: 127.0.0.1
-          hostnames:
-            - bank-as.dpe-opendata.com
       containers:
       - args:
           - gunicorn
           - -c
           - python:config.gunicorn
-          - rcs.app:create_app()
+          - directory.app:create_app()
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
-        name: obp-remote-consent-service-v2
-        image: gcr.io/dpe-obp-mgmt-services-1badd717/obp-remote-consent-service-v2:latest
-        imagePullPolicy: IfNotPresent
+        name: obp-directory
+        image: docker.io/bambebo/obp-directory:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         livenessProbe:
@@ -76,8 +71,8 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 500m
     ingress.kubernetes.io/proxy-body-size: 500m
   labels:
-    app: obp-remote-consent-service-v2
-  name: obp-remote-consent-service-v2
+    app: obp-directory
+  name: obp-directory
 spec:
   tls:
     - hosts:
@@ -88,6 +83,6 @@ spec:
       http:
         paths:
         - backend:
-            serviceName: obp-remote-consent-service-v2
+            serviceName: obp-directory
             servicePort: 8080
           path: /*
