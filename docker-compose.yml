@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  obp-directory:
+    build: .
+    command: >
+      gunicorn -c "python:config.gunicorn" --reload "directory.app:create_app()"
+    environment:
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - '.:/obp-directory'
+    ports:
+      - '8000:8000'

@@ -1,0 +1,16 @@
+# Application server for both development and production.
+gunicorn
+
+# Yaml processing
+pyyaml
+
+Flask
+
+#JWK
+jwcrypto
+
+#Cache
+flask-caching
+
+requests
+python-dateutil
