@@ -8,12 +8,23 @@ spec:
   type: NodePort
   ports:
   - name: http
-    port: 8080
+    port: 80
     protocol: TCP
     targetPort: 8000
   selector:
     app: obp-directory
     version: v1
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: obp-directory
+  namespace: forgerock
+spec:
+  type: ExternalName
+  externalName: obp-directory.frdemo.svc.cluster.local
+  ports:
+  - port: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -33,6 +44,9 @@ spec:
           - -c
           - python:config.gunicorn
           - directory.app:create_app()
+        volumeMounts:
+          - mountPath: "/app/directory/data"
+            name: directory-config
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -60,29 +74,8 @@ spec:
           limits:
             memory: "500Mi"
             cpu: "500m"
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.org/proxy-buffers: "128k"
-    nginx.org/proxy-buffer-size: "4 256k"
-    nginx.ingress.kubernetes.io/proxy-body-size: 500m
-    ingress.kubernetes.io/proxy-body-size: 500m
-  labels:
-    app: obp-directory
-  name: obp-directory
-spec:
-  tls:
-    - hosts:
-      - rcs.dpe-opendata.com
-      secretName: rcs.dpe-opendata.com
-  rules:
-    - host: rcs.dpe-opendata.com
-      http:
-        paths:
-        - backend:
-            serviceName: obp-directory
-            servicePort: 8080
-          path: /*
+      volumes:
+        - name: directory-config
+          secret:
+            secretName: directory-config
+
